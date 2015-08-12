@@ -1,0 +1,134 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'distribution'
+apply plugin: 'java-library-distribution'
+apply plugin: 'com.bmuschko.nexus'
+
+sourceCompatibility = 1.8
+sourceCompatibility = 1.8
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+jar {
+  manifest {
+    
+  }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2'
+}
+
+buildscript {
+  repositories {
+    mavenCentral()
+    jcenter()
+  }
+
+  dependencies {
+    classpath 'com.bmuschko:gradle-nexus-plugin:2.3'
+    classpath 'com.netflix.nebula:gradle-extra-configurations-plugin:2.2.0'
+  }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+}
+
+repositories {
+   jcenter()
+   maven {
+        url 'https://oss.sonatype.org/content/groups/public'
+   }
+   maven {
+        url 'http://kundera.googlecode.com/svn/maven2/maven-missing-resources'
+   }
+   maven {
+      url "http://repo.1p.thomsonreuters.com/nexus/content/repositories/thirdparty/"
+   }
+   maven {
+      url "http://repo.1p.thomsonreuters.com/nexus/content/repositories/snapshots/"
+   }
+   maven {
+      url "http://repo.1p.thomsonreuters.com/nexus/content/repositories/releases/"
+   }
+}
+
+dependencies {
+  compile group: 'com.codahale.metrics', name:'metrics-core',  version: '3.0.2'
+  compile group: 'org.json', name: 'json', version: '20141113'
+  compile group: 'org.influxdb', name:'influxdb-java',  version: '1.5'
+  compile group: 'com.netflix.hystrix', name:'hystrix-core',  version: '1.4.12'
+  compile group: 'com.netflix.governator', name: 'governator', version: '1.7.6-rc.6'
+  compile group: 'log4j', name:'log4j',  version: '1.2.17'
+  compile group: 'com.netflix.eureka', name:'eureka-client',  version: '1.1.159'
+  compile group: 'io.searchbox', name:'jest',  version: '0.1.6'
+  compile group: 'org.elasticsearch', name:'elasticsearch',  version: '1.6.0'
+}
+
+eclipse {
+    classpath {
+        downloadSources = true
+    }
+}
+
+  ext {
+    //auto versioning
+    gitVersionName = { ->
+      def stdout = new ByteArrayOutputStream()
+      exec {
+          commandLine 'git', 'describe', '--tags'
+          standardOutput = stdout
+      }
+      //will return sonething like: TAG-<# of commits>-revision
+      def version = stdout.toString().trim().split("-");
+  
+      printf 'version: ' + version
+            
+      //this is git tag + commit counts + hash, produce snapshot
+      if( version.size() > 2 && version[2].length() == 8 && version[2].charAt( 0 ) == 'g' ) {
+        //return version[ 0 ] + "-" + version[ 1 ].padLeft(4, "0") + "-" + version[ 2 ] + "-SNAPSHOT"
+        
+        return version[ 0 ] + "-SNAPSHOT"
+      }
+      else if( version.size() > 3 && version[1].equalsIgnoreCase( "SNAPSHOT" ) && version[3].length() == 8 && version[3].charAt( 0 ) == 'g' ) {
+        return version[ 0 ] + "-SNAPSHOT"
+      }
+      else {
+        def tokens   = [];
+        def snapshot = false;
+        version.each { token ->
+          if( token.equalsIgnoreCase( "SNAPSHOT" ) ) {
+            snapshot = true
+          }
+          else {
+            tokens.add( token )
+          }
+        }
+       
+        if( tokens.size() > 1 || snapshot ) {
+          tokens.add("SNAPSHOT")
+        }
+         
+        return tokens.iterator().join("-")
+      }
+    }
+  }
+
+def nexusUsername="$System.env.nexusUsername"
+def nexusPassword="$System.env.nexusPassword"
+
+version = ext.gitVersionName()
+
+nexus {
+  sign = false
+  repositoryUrl         = 'http://repo.1p.thomsonreuters.com/nexus/content/repositories/releases/'
+  snapshotRepositoryUrl = 'http://repo.1p.thomsonreuters.com/nexus/content/repositories/snapshots/'
+}
+ 
