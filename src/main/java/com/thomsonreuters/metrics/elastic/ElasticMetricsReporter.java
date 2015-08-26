@@ -43,12 +43,15 @@ public class ElasticMetricsReporter extends ScheduledReporter {
 		super(registry, "elastic", filter, rateUnit, durationUnit);
 		this.filter = filter;
 		
-		JestClientFactory factory = new JestClientFactory();
-		factory.setHttpClientConfig(new HttpClientConfig
-			.Builder(config.getDbHost())
-			.multiThreaded(true)
-			.build());
-		client = factory.getObject();
+		if (config.getDbHost() != null) {
+			
+			JestClientFactory factory = new JestClientFactory();
+			factory.setHttpClientConfig(new HttpClientConfig
+				.Builder(config.getDbHost())
+				.multiThreaded(true)
+				.build());
+			client = factory.getObject();
+		}
 	}
 	
 	public static Builder forRegistry(MetricRegistry registry) {
@@ -87,11 +90,13 @@ public class ElasticMetricsReporter extends ScheduledReporter {
 			SortedMap<String, Histogram> histograms,
 			SortedMap<String, Meter> meters, SortedMap<String, Timer> timers) {
 		
-		for (Map.Entry<String, Gauge> entry : gauges.entrySet()) {
-			String name = entry.getKey();
-			
-			if (filter.matches(name, null)) {
-				reportGauge(entry.getKey(), entry.getValue(), Clock.defaultClock().getTime());
+		if (client != null) {
+			for (Map.Entry<String, Gauge> entry : gauges.entrySet()) {
+				String name = entry.getKey();
+				
+				if (filter.matches(name, null)) {
+					reportGauge(entry.getKey(), entry.getValue(), Clock.defaultClock().getTime());
+				}
 			}
 		}
 	}

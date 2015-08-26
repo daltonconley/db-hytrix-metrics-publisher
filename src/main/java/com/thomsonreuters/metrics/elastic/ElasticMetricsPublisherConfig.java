@@ -1,14 +1,20 @@
 package com.thomsonreuters.metrics.elastic;
 
+import org.apache.commons.configuration.AbstractConfiguration;
+
 import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.config.ConfigurationManager;
 
 public class ElasticMetricsPublisherConfig {
 	
-	private String dbHost = ConfigurationManager.getConfigInstance().getString("metrics.elastic.host");
+	private String dbHost;
 	private ApplicationInfoManager appInfoManager;
 
 	public ElasticMetricsPublisherConfig() {
+		AbstractConfiguration configInstance = ConfigurationManager.getConfigInstance();
+		configInstance.setThrowExceptionOnMissing(false);
+		
+		dbHost = configInstance.getString("metrics.elastic.host");
 		appInfoManager = ApplicationInfoManager.getInstance();
 	}
 	
