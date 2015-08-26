@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Serie;
@@ -21,8 +20,6 @@ import com.codahale.metrics.ScheduledReporter;
 import com.codahale.metrics.Timer;
 
 public class InfluxDbMetricsReporter extends ScheduledReporter {
-	
-	private static final Logger log = Logger.getLogger(InfluxDbMetricsReporter.class);
 	
 	private InfluxDB influxDb;
 	private MetricFilter filter;
@@ -93,7 +90,6 @@ public class InfluxDbMetricsReporter extends ScheduledReporter {
 		// we don't want to record metrics that haven't changed.
 		Long previousValue = previousValues.get(name);
 		if (previousValue == null || !previousValue.equals(gauge.getValue())) {
-			log.info("Publishing changed metric [" + name + "] with value [" + gauge.getValue() + "]");
 			influxDb.write(config.getDbName(), TimeUnit.MILLISECONDS, serie);
 			previousValues.put(name, gaugeValue);
 		}

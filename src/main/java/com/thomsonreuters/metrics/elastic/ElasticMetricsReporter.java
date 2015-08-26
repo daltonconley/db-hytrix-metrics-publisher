@@ -121,7 +121,7 @@ public class ElasticMetricsReporter extends ScheduledReporter {
 				previousValues.put(name, gaugeValue);
 				
 			} catch (IOException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
 		}
 	}
