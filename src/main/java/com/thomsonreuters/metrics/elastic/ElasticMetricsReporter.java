@@ -1,7 +1,5 @@
 package com.thomsonreuters.metrics.elastic;
 
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
-
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -111,14 +109,12 @@ public class ElasticMetricsReporter extends ScheduledReporter {
 				String indexName = "hystrix-metrics-" + ft.format(new Date());
 				
 				createIndexIfDoesntExist(indexName);
-				String source = jsonBuilder()
-					.startObject()
-						.field("timestamp", new Date(timestamp))
-						.field("metric", name)
-						.field("serviceName", config.getAppInfoManager().getInfo().getAppName())
-						.field("instanceId", config.getAppInfoManager().getInfo().getId())
-						.field("value", gauge.getValue())
-					.endObject().string();
+				Map<String, Object> source = new HashMap<String, Object>();
+				source.put("timestamp", new Date(timestamp));
+				source.put("metric", name);
+				source.put("serviceName", config.getAppInfoManager().getInfo().getAppName());
+				source.put("instanceId", config.getAppInfoManager().getInfo().getId());
+				source.put("value", gauge.getValue());
 				
 				Index index = new Index.Builder(source).index(indexName).type("metric").build();
 				client.execute(index);

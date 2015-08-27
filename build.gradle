@@ -65,9 +65,6 @@ dependencies {
   compile group: 'com.netflix.hystrix', name:'hystrix-core',  version: '1.4.12'
   compile group: 'com.netflix.eureka', name:'eureka-client',  version: '1.1.151'
   compile group: 'io.searchbox', name: 'jest', version: '0.1.6'
-  compile('org.elasticsearch:elasticsearch:1.6.0') {
-  	exclude group: 'org.ow2.asm'
-  }
 }
 
 eclipse {
